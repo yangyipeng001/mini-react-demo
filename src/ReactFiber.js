@@ -18,7 +18,7 @@ export function createFiber(vnode, returnFiber) {
         // 下一个兄弟节点
         sibling: null,
         // 父节点
-        return: null,
+        return: returnFiber,
         flags: Placement,
 
         // 记录节点在当前层级下的位置

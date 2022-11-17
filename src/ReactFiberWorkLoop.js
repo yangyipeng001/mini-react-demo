@@ -12,6 +12,7 @@ import {
     HostComponent,
     HostText
 } from "./ReactWorkTags";
+import { Placement } from "./utils";
 
 // work in progress 当前正在工作中的
 let wip = null
@@ -72,3 +73,57 @@ function performUnitWork() {
 
     wip = null
 }
+
+function getParentNode(wip) {
+    let tem = wip;
+
+    while (tem) {
+        if (tem.stateNode) {
+            return tem.stateNode;
+        }
+        
+        tem = tem.return;
+    }
+}
+
+function commitWoeker(wip) {
+    if (!wip) {
+        return
+    }
+
+    // 1. 提交自己
+    // parentNode是父DOM节点
+    // ?
+    const parentNode = getParentNode(wip.return) //  wip.return.stateNode
+    const {flags, stateNode} = wip
+
+    if (flags & Placement && stateNode) {
+        parentNode.appendChild(stateNode)
+    }
+
+    // 2. 提交子节点
+    commitWoeker(wip.child)
+
+    // 3. 提交兄弟
+    commitWoeker(wip.sibling)
+}
+
+// 提交
+function commitRoot() {
+    commitWoeker(wipRoot)
+
+    // 因为会多次调用
+    wipRoot = null
+}
+
+function workLoop(IdleDeadline) {
+    while(wip && IdleDeadline.timeRemaining() > 0) {
+        performUnitWork()
+    }
+
+    if (!wip && wipRoot) {
+        commitRoot()
+    }
+}
+
+requestIdleCallback(workLoop)
