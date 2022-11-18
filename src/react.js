@@ -1,7 +1,8 @@
 import Component  from "./Component";
-import {useReducer} from './hooks'
+import {useReducer, useState} from './hooks'
 
 export {
     Component,
     useReducer,
+    useState,
 }
