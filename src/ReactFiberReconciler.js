@@ -2,6 +2,24 @@ import { renderWithHooks } from "./hooks"
 import { createFiber } from "./ReactFiber"
 import { isArray, isStringOrNumber, Update, updateNode } from "./utils"
 
+/**
+ * 
+ * @param {*} returnFiber 父fiber
+ * @param {*} childToDelete 当前删除的fiber
+ * 
+ * returnFiber.deletions = [a, b, c]
+ */
+function deleteChild(returnFiber, childToDelete) {
+    const deletions = returnFiber.deletions
+
+    if (deletions) {
+        returnFiber.deletions.push(childToDelete)
+    }
+    else {
+        returnFiber.deletions = [childToDelete]
+    }
+}
+
 // 协调（diff)
 // abc
 // bc
@@ -25,12 +43,18 @@ function reconcileChildren(wip, children) {
         const newFiber = createFiber(newChild, wip)
         const same = sameNode(newFiber, oldFiber)
 
+        // 节点可以复用
         if (same) {
             Object.assign(newFiber, {
                 stateNode: oldFiber.stateNode,
                 alternate: oldFiber,
                 flags: Update,
             })
+        }
+
+        // 节点不可以复用 && oldFiber存在
+        if (!same && oldFiber) {
+            deleteChild(wip, oldFiber)
         }
 
         // oldfiber 向下移动 

@@ -109,6 +109,12 @@ function commitWoeker(wip) {
         updateNode(stateNode, wip.alternate.props, wip.props)
     }
 
+    // 删除节点
+    if (wip.deletions) {
+        // 删除wip的子节点
+        commitDeletions(wip.deletions, stateNode || parentNode)
+    }
+
     // 2. 提交子节点
     commitWoeker(wip.child)
 
@@ -145,3 +151,25 @@ function workLoop() {
 // }
 
 // requestIdleCallback(workLoop)
+
+/**
+ * 
+ * @param {*} deletions 需要删除节点的数组
+ * @param {*} parentNode 父节点
+ */
+function commitDeletions(deletions, parentNode) {
+    for (let i = 0; i < deletions.length; i++) {
+        parentNode.removeChild(getStateNode(deletions[i]))
+    }
+}
+
+// 不是每个fiber都有dom节点
+function getStateNode(fiber) {
+    let tem = fiber
+
+    while(!tem.stateNode) {
+        tem = tem.child
+    }
+
+    return tem.stateNode
+}
