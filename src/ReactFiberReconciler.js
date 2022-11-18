@@ -1,7 +1,10 @@
+import { renderWithHooks } from "./hooks"
 import { createFiber } from "./ReactFiber"
-import { isArray, isStringOrNumber, updateNode } from "./utils"
+import { isArray, isStringOrNumber, Update, updateNode } from "./utils"
 
 // 协调（diff)
+// abc
+// bc
 function reconcileChildren(wip, children) {
     if (isStringOrNumber(children)) {
         return
@@ -9,6 +12,8 @@ function reconcileChildren(wip, children) {
 
     // ! 简单的都处理成数组（源码多个节点是数组，单个节点是对象）
     const newChildren = isArray(children) ? children : [children]
+    // oldFiber的头结点
+    let oldFiber = wip.alternate?.child
     let previousNewFiber = null
     for (let i = 0; i < newChildren.length; i++) {
         const newChild = newChildren[i]
@@ -18,6 +23,20 @@ function reconcileChildren(wip, children) {
         }
 
         const newFiber = createFiber(newChild, wip)
+        const same = sameNode(newFiber, oldFiber)
+
+        if (same) {
+            Object.assign(newFiber, {
+                stateNode: oldFiber.stateNode,
+                alternate: oldFiber,
+                flags: Update,
+            })
+        }
+
+        // oldfiber 向下移动 
+        if (oldFiber) {
+            oldFiber = oldFiber.sibling
+        }
 
         if (previousNewFiber === null) {
             // head node
@@ -31,21 +50,27 @@ function reconcileChildren(wip, children) {
     }
 }
 
+// 节点复用的条件：1.同一层级下 2.key相同 3.类型相同
+function sameNode(a, b) {
+    return a && b && a.key === b.key && a.type === b.type
+}
+
 // 原生标签
 export function updateHostComponent(wip) {
     if (!wip.stateNode) {
         // 创建标签
         wip.stateNode = document.createElement(wip.type)
         // 添加属性
-        updateNode(wip.stateNode, wip.props)
+        updateNode(wip.stateNode, {}, wip.props)
     }
 
     // 渲染子节点
     reconcileChildren(wip, wip.props.children)
-    console.log('--wip', wip)
 }
 
 export function updateFunctionComponent(wip) {
+    renderWithHooks(wip)
+    
     const {type, props} = wip
     const children = type(props)
 

@@ -13,7 +13,7 @@ import {
     HostText
 } from "./ReactWorkTags";
 import { scheduleCallback } from "./scheduler";
-import { Placement } from "./utils";
+import { Placement, Update, updateNode } from "./utils";
 
 // work in progress 当前正在工作中的
 let wip = null
@@ -102,6 +102,11 @@ function commitWoeker(wip) {
 
     if (flags & Placement && stateNode) {
         parentNode.appendChild(stateNode)
+    }
+
+    // 更新属性
+    if (flags & Update && stateNode) {
+        updateNode(stateNode, wip.alternate.props, wip.props)
     }
 
     // 2. 提交子节点
