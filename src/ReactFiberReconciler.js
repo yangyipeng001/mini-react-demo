@@ -42,12 +42,29 @@ export function updateHostComponent(wip) {
 
     // 渲染子节点
     reconcileChildren(wip, wip.props.children)
+    console.log('--wip', wip)
 }
 
-export function updateFunctionComponent() {}
+export function updateFunctionComponent(wip) {
+    const {type, props} = wip
+    const children = type(props)
 
-export function updateClassComponent() {}
+    reconcileChildren(wip, children)
+}
 
-export function updateFragmentComponent() {}
+export function updateClassComponent(wip) {
+    const {type, props} = wip
+    const instance = new type(props)
+    const children = instance.render()
 
-export function updateHostTextComponent() {}
+    reconcileChildren(wip, children)
+
+}
+
+export function updateFragmentComponent(wip) {
+    reconcileChildren(wip, wip.props.children)
+}
+
+export function updateHostTextComponent(wip) {
+    wip.stateNode = document.createTextNode(wip.props.children)
+}
