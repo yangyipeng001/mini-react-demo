@@ -7,7 +7,7 @@ function sameNode(a, b) {
 }
 
 /**
- * 
+ * 删除节点
  * @param {*} returnFiber 父fiber
  * @param {*} childToDelete 当前删除的fiber
  * 
@@ -24,10 +24,30 @@ function sameNode(a, b) {
     }
 }
 
-// 协调（diff)
-// abc
-// bc
-export function reconcileChildren(wip, children) {
+/**
+ * 删除多个节点
+ * @param {*} returnFiber 父fiber
+ * @param {*} currentFirstChild 当前链表头结点
+ */
+function deleteRemainingChildren(returnFiber, currentFirstChild) {
+    let childToDelete = currentFirstChild
+
+    while(childToDelete) {
+        deleteChild(returnFiber, childToDelete)
+        childToDelete = childToDelete.sibling
+    }
+}
+
+/**
+ * 协调（diff)
+ * @param {*} returnFiber 父fiber
+ * @param {*} children 子节点
+ * @returns 
+ *
+ * abc
+ * bc
+ */
+export function reconcileChildren(returnFiber, children) {
     if (isStringOrNumber(children)) {
         return
     }
@@ -35,16 +55,18 @@ export function reconcileChildren(wip, children) {
     // ! 简单的都处理成数组（源码多个节点是数组，单个节点是对象）
     const newChildren = isArray(children) ? children : [children]
     // oldFiber的头结点
-    let oldFiber = wip.alternate?.child
+    let oldFiber = returnFiber.alternate?.child
     let previousNewFiber = null
-    for (let i = 0; i < newChildren.length; i++) {
-        const newChild = newChildren[i]
+    let newIndex = 0
+
+    for (newIndex = 0; newIndex < newChildren.length; newIndex++) {
+        const newChild = newChildren[newIndex]
 
         if (newChild === null) {
             continue
         }
 
-        const newFiber = createFiber(newChild, wip)
+        const newFiber = createFiber(newChild, returnFiber)
         const same = sameNode(newFiber, oldFiber)
 
         // 节点可以复用
@@ -58,7 +80,7 @@ export function reconcileChildren(wip, children) {
 
         // 节点不可以复用 && oldFiber存在
         if (!same && oldFiber) {
-            deleteChild(wip, oldFiber)
+            deleteChild(returnFiber, oldFiber)
         }
 
         // oldfiber 向下移动 
@@ -68,12 +90,17 @@ export function reconcileChildren(wip, children) {
 
         if (previousNewFiber === null) {
             // head node
-            wip.child = newFiber
+            returnFiber.child = newFiber
         }
         else {
             previousNewFiber.sibling = newFiber
         }
 
         previousNewFiber = newFiber
+    }
+
+    // 如果新节点遍历完了，但是（多个）老节点还有，（多个）老节点要被删除
+    if (newIndex === newChildren.length) {
+        deleteRemainingChildren(returnFiber, oldFiber)
     }
 }
