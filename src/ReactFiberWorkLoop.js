@@ -93,6 +93,7 @@ function commitWoeker(wip) {
     if (!wip) {
         return
     }
+    // console.log('wip: ', wip)
 
     // 1. 提交自己
     // parentNode是父DOM节点
@@ -101,7 +102,12 @@ function commitWoeker(wip) {
     const {flags, stateNode} = wip
 
     if (flags & Placement && stateNode) {
-        parentNode.appendChild(stateNode)
+        // 0 1 2 3 4
+        // 2 1 3 4
+        const before = getHostSibling(wip.sibling)
+        insertOrAppendPlacementNode(stateNode, before, parentNode)
+
+        // parentNode.appendChild(stateNode)
     }
 
     // 更新属性
@@ -172,4 +178,35 @@ function getStateNode(fiber) {
     }
 
     return tem.stateNode
+}
+
+/**
+ * 获取下一个节点
+ * @param {*} sibling 下一个节点
+ */
+function getHostSibling(sibling) {
+    while(sibling) {
+        if (sibling?.stateNode && !(sibling.flags & Placement)) {
+            return sibling.stateNode
+        }
+
+        sibling = sibling.sibling
+    }
+
+    return null
+}
+
+/**
+ * 之前插入还是之后插入
+ * @param {*} stateNode dom节点
+ * @param {*} before 插入的位置节点
+ * @param {*} parentNode 父节点
+ */
+function insertOrAppendPlacementNode(stateNode, before, parentNode) {
+    if (before) {
+        parentNode.insertBefore(stateNode, before)
+    }
+    else {
+        parentNode.appendChild(stateNode)
+    }
 }
