@@ -121,6 +121,11 @@ function commitWoeker(wip) {
         commitDeletions(wip.deletions, stateNode || parentNode)
     }
 
+    // 处理副作用
+    if (wip.tag === FunctionComponent) {
+        invokeHooks(wip)
+    }
+
     // 2. 提交子节点
     commitWoeker(wip.child)
 
@@ -208,5 +213,31 @@ function insertOrAppendPlacementNode(stateNode, before, parentNode) {
     }
     else {
         parentNode.appendChild(stateNode)
+    }
+}
+
+/**
+ * 处理副作用
+ * @param {*} wip fiber
+ */
+function invokeHooks(wip) {
+    const {
+        updateQueueOfEffect,
+        updateQueueOfLayout
+    } = wip
+
+    // 同步
+    for (let i = 0; i < updateQueueOfLayout.length; i++) {
+        const effect = updateQueueOfLayout[i]
+        effect.create()
+    }
+
+    // 异步
+    for (let i = 0; i < updateQueueOfEffect.length; i++) {
+        const effect = updateQueueOfEffect[i]
+
+        scheduleCallback(() => {
+            effect.create()
+        })
     }
 }

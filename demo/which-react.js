@@ -1,8 +1,20 @@
-// import React, {useReducer, useState, Component} from 'react'
+// import React, {
+//     useReducer,
+//     useState,
+//     Component,
+//     useEffect,
+//     useLayoutEffect,
+// } from 'react'
 // import ReactDOM from 'react-dom/client'
 
 import ReactDOM from "../src/react-dom"
-import {Component, useReducer, useState} from "../src/react"
+import {
+    Component,
+    useReducer,
+    useState,
+    useEffect,
+    useLayoutEffect,
+} from "../src/react"
 
 
 export {
@@ -10,4 +22,6 @@ export {
     Component,
     useReducer,
     useState,
+    useEffect,
+    useLayoutEffect,
 }

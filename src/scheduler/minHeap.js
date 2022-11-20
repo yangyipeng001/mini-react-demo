@@ -34,7 +34,7 @@ function siftUp(heap, node, i) {
 }
 
 function compare(a, b) {
-    const diff = a.sortIndex - b.sortIndex
+    const diff = a?.sortIndex - b?.sortIndex
 
     return diff !== 0 ? diff : a.id - b.id
 }
